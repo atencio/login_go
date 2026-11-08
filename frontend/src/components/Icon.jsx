@@ -20,6 +20,11 @@ const PATHS = {
   eyeOff: 'M3 3l18 18M10.6 6.1A9.6 9.6 0 0112 6c6.4 0 10 6 10 6a17 17 0 01-3.2 3.9M6.6 7.6A17 17 0 002 12s3.6 6 10 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 004.2 4.2',
   refresh: 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7',
   user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0',
+  briefcase: 'M3 8h18v11H3zM8 8V5h8v3M3 13h18',
+  idcard: 'M3 5h18v14H3zM8 11a2 2 0 100-4 2 2 0 000 4zM5 16a3 3 0 016 0M14 9h4M14 13h4',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  swap: 'M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4',
+  clock: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3 2',
 };
 
 export default function Icon({ name, size = 20 }) {

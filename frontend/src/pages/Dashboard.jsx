@@ -8,18 +8,23 @@ import { useAuth } from '../context/AuthContext';
 export default function Dashboard() {
   const { user, profile, can } = useAuth();
   const [summary, setSummary] = useState(null);
+  const [inv, setInv] = useState(null);
   const [catalog, setCatalog] = useState([]);
 
   useEffect(() => {
-    if (can('reports.list')) api('/reports/users-summary').then(setSummary).catch(() => {});
+    if (can('reports.list')) {
+      api('/reports/users-summary').then(setSummary).catch(() => {});
+      api('/reports/inventory-summary').then(setInv).catch(() => {});
+    }
     loadCatalog().then(setCatalog).catch(() => {});
   }, [can]);
 
-  const max = summary ? Math.max(1, ...summary.by_role.map((r) => r.total)) : 1;
-  const modules = groupCatalog(catalog).map((m) => {
-    const granted = ACTIONS.filter((a) => m.actions[a.key] && profile.permissions.includes(m.actions[a.key]));
-    return { ...m, granted };
-  });
+  const maxRole = summary ? Math.max(1, ...summary.by_role.map((r) => r.total)) : 1;
+  const maxCat = inv ? Math.max(1, ...inv.by_category.map((c) => c.total)) : 1;
+  const modules = groupCatalog(catalog).map((m) => ({
+    ...m,
+    granted: ACTIONS.filter((a) => m.actions[a.key] && profile.permissions.includes(m.actions[a.key])),
+  }));
 
   return (
     <>
@@ -30,16 +35,38 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {summary && (
+      {inv && (
         <div className="stats">
-          <Stat icon="users" label="Usuarios" value={summary.total_users} />
-          <Stat icon="check" label="Activos" value={summary.active_users} />
-          <Stat icon="x" label="Inactivos" value={summary.total_users - summary.active_users} />
+          <Stat icon="monitor" label="Equipos" value={inv.total_equipment} />
+          <Stat icon="check" label="Disponibles" value={inv.available} />
+          <Stat icon="swap" label="Asignados" value={inv.assigned} />
+          <Stat icon="alert" label="En mantenimiento" value={inv.maintenance} />
+        </div>
+      )}
+      {summary && inv && (
+        <div className="stats stats--spaced">
+          <Stat icon="idcard" label="Funcionarios activos" value={inv.employees} />
+          <Stat icon="users" label="Usuarios del sistema" value={summary.total_users} />
+          <Stat icon="x" label="Dados de baja" value={inv.retired} />
           <Stat icon="shield" label="Perfiles en uso" value={summary.by_role.filter((r) => r.total > 0).length} />
         </div>
       )}
 
       <div className="grid-2">
+        {inv && inv.by_category.length > 0 && (
+          <section className="card">
+            <h2 className="card__title">Equipos por categoría</h2>
+            <div className="card__body">
+              {inv.by_category.map((c) => (
+                <div key={c.name} className="bar-row">
+                  <span>{c.name}</span>
+                  <div className="bar"><div style={{ width: `${(c.total / maxCat) * 100}%` }} /></div>
+                  <strong>{c.total}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         {summary && (
           <section className="card">
             <h2 className="card__title">Usuarios por perfil</h2>
@@ -47,7 +74,7 @@ export default function Dashboard() {
               {summary.by_role.map((r) => (
                 <div key={r.role} className="bar-row">
                   <span>{r.role}</span>
-                  <div className="bar"><div style={{ width: `${(r.total / max) * 100}%` }} /></div>
+                  <div className="bar"><div style={{ width: `${(r.total / maxRole) * 100}%` }} /></div>
                   <strong>{r.total}</strong>
                 </div>
               ))}

@@ -35,6 +35,7 @@ type RoleUseCase interface {
 
 type ReportUseCase interface {
 	UsersSummary(ctx context.Context) (*domain.ReportSummary, error)
+	InventorySummary(ctx context.Context) (*domain.InventorySummary, error)
 }
 
 type Handler struct {
@@ -363,5 +364,25 @@ func (h *Handler) UsersSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"total_users": s.TotalUsers, "active_users": s.ActiveUsers, "by_role": by,
+	})
+}
+
+func (h *Handler) InventorySummary(w http.ResponseWriter, r *http.Request) {
+	s, err := h.reports.InventorySummary(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	type nameCount struct {
+		Name  string `json:"name"`
+		Total int    `json:"total"`
+	}
+	cats := make([]nameCount, 0, len(s.ByCategory))
+	for _, c := range s.ByCategory {
+		cats = append(cats, nameCount{c.Name, c.Total})
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"total_equipment": s.TotalEquipment, "available": s.Available, "assigned": s.Assigned,
+		"maintenance": s.Maintenance, "retired": s.Retired, "employees": s.Employees, "by_category": cats,
 	})
 }

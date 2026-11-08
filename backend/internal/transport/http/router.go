@@ -6,7 +6,7 @@ import (
 	"nexo/internal/domain"
 )
 
-func NewRouter(h *Handler, m *Middleware, allowedOrigin string) http.Handler {
+func NewRouter(h *Handler, ih *InventoryHandler, m *Middleware, allowedOrigin string) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -37,8 +37,43 @@ func NewRouter(h *Handler, m *Middleware, allowedOrigin string) http.Handler {
 	mux.Handle("PUT /api/roles/{id}", m.Require(domain.PermRolesUpdate, h.UpdateRole))
 	mux.Handle("DELETE /api/roles/{id}", m.Require(domain.PermRolesDelete, h.DeleteRole))
 
+	// Cargos
+	mux.Handle("GET /api/positions", m.Require(domain.PermPositionsList, ih.ListPositions))
+	mux.Handle("GET /api/positions/options", m.RequireAny(
+		[]string{domain.PermEmployeesCreate, domain.PermEmployeesUpdate, domain.PermPositionsList}, ih.PositionOptions))
+	mux.Handle("GET /api/positions/{id}", m.Require(domain.PermPositionsFind, ih.GetPosition))
+	mux.Handle("POST /api/positions", m.Require(domain.PermPositionsCreate, ih.CreatePosition))
+	mux.Handle("PUT /api/positions/{id}", m.Require(domain.PermPositionsUpdate, ih.UpdatePosition))
+	mux.Handle("DELETE /api/positions/{id}", m.Require(domain.PermPositionsDelete, ih.DeletePosition))
+
+	// Funcionarios
+	mux.Handle("GET /api/employees", m.Require(domain.PermEmployeesList, ih.ListEmployees))
+	mux.Handle("GET /api/employees/options", m.RequireAny(
+		[]string{domain.PermAssignmentsCreate, domain.PermAssignmentsUpdate, domain.PermEmployeesList}, ih.EmployeeOptions))
+	mux.Handle("GET /api/employees/{id}", m.Require(domain.PermEmployeesFind, ih.GetEmployee))
+	mux.Handle("POST /api/employees", m.Require(domain.PermEmployeesCreate, ih.CreateEmployee))
+	mux.Handle("PUT /api/employees/{id}", m.Require(domain.PermEmployeesUpdate, ih.UpdateEmployee))
+	mux.Handle("DELETE /api/employees/{id}", m.Require(domain.PermEmployeesDelete, ih.DeleteEmployee))
+
+	// Equipos de oficina
+	mux.Handle("GET /api/equipment", m.Require(domain.PermEquipmentList, ih.ListEquipment))
+	mux.Handle("GET /api/equipment/options", m.RequireAny(
+		[]string{domain.PermAssignmentsCreate, domain.PermEquipmentList}, ih.EquipmentOptions))
+	mux.Handle("GET /api/equipment/{id}", m.Require(domain.PermEquipmentFind, ih.GetEquipment))
+	mux.Handle("POST /api/equipment", m.Require(domain.PermEquipmentCreate, ih.CreateEquipment))
+	mux.Handle("PUT /api/equipment/{id}", m.Require(domain.PermEquipmentUpdate, ih.UpdateEquipment))
+	mux.Handle("DELETE /api/equipment/{id}", m.Require(domain.PermEquipmentDelete, ih.DeleteEquipment))
+
+	// Asignaciones e historial (no se borran: son el registro de auditoría)
+	mux.Handle("GET /api/assignments", m.Require(domain.PermAssignmentsList, ih.ListAssignments))
+	mux.Handle("GET /api/assignments/{id}", m.Require(domain.PermAssignmentsFind, ih.GetAssignment))
+	mux.Handle("POST /api/assignments", m.Require(domain.PermAssignmentsCreate, ih.CreateAssignment))
+	mux.Handle("PUT /api/assignments/{id}", m.Require(domain.PermAssignmentsUpdate, ih.UpdateAssignment))
+	mux.Handle("POST /api/assignments/{id}/return", m.Require(domain.PermAssignmentsUpdate, ih.ReturnAssignment))
+
 	// Reportes
 	mux.Handle("GET /api/reports/users-summary", m.Require(domain.PermReportsList, h.UsersSummary))
+	mux.Handle("GET /api/reports/inventory-summary", m.Require(domain.PermReportsList, h.InventorySummary))
 
 	return CORS(allowedOrigin, mux)
 }

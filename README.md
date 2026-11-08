@@ -40,10 +40,26 @@ SOLID: cada capa tiene una sola responsabilidad (S), se extiende agregando casos
 permisos sin tocar los existentes (O), los repositorios son intercambiables por sus interfaces (L),
 los handlers piden interfaces pequeñas (I) y todo depende de abstracciones del dominio (D).
 
+## Inventario de asignación de activos
+
+Menú **Inventario de activos**:
+
+- **Cargos**: CRUD de puestos (no se elimina un cargo con funcionarios).
+- **Funcionarios**: CRUD con nombre, apellido, correo, documento, teléfono, cargo, departamento, fecha de ingreso y estado. Botón de historial por funcionario.
+- **Equipos de oficina**: CRUD de activos. Al **crear** se digita la **cantidad**: se generan N unidades, cada una con su código (`EQ-00001`…). Después cada unidad se edita por separado (no hay cantidad al editar).
+  Estados: disponible, asignado, en mantenimiento y dado de baja. Muestra quién tiene cada equipo.
+- **Asignaciones**: pestaña *Asignaciones activas* (nueva asignación, **actualizar** = cambiar notas o transferir a otro funcionario, **devolver** dejando el equipo disponible, en mantenimiento o dado de baja) y pestaña *Historial* con todos los movimientos.
+
+Reglas que garantiza el backend:
+- Un equipo tiene una sola asignación activa (índice único parcial en la base de datos).
+- Solo se asigna un equipo *disponible* a un funcionario *activo*; asignar, transferir y devolver son transacciones.
+- El estado "asignado" solo lo cambian las asignaciones; el historial no se borra.
+- Un funcionario o equipo con historial no se elimina: se desactiva o se da de baja.
+
 ## Perfiles y permisos
 
 Usuario → Perfil (rol) → Permisos. Cada permiso es una celda de la matriz **módulo × acción**
-(`users.create`, `users.list`, `users.find`, `users.update`, `users.delete`, `roles.*`, `reports.list`):
+(`users.*`, `roles.*`, `positions.*`, `employees.*`, `equipment.*`, `assignments.*`, `reports.list`):
 Crear, Listar, Encontrar (buscar / ver detalle), Editar y Eliminar.
 
 - La pantalla **Perfiles** crea, edita, consulta y elimina perfiles con la matriz de interruptores.
@@ -74,4 +90,11 @@ Crear, Listar, Encontrar (buscar / ver detalle), Editar y Eliminar.
 | GET | /api/roles/options | users.create, users.update o roles.list |
 | GET | /api/roles/{id} | roles.find |
 | POST / PUT / DELETE | /api/roles, /api/roles/{id} | roles.create / update / delete |
-| GET | /api/reports/users-summary | reports.list |
+| GET | /api/positions, /api/employees, /api/equipment | positions / employees / equipment `.list` (con `q` o filtros: `.find`) |
+| GET | /api/positions/options, /api/employees/options, /api/equipment/options | para selectores de formularios |
+| GET / POST / PUT / DELETE | /api/positions, /api/employees, /api/equipment (+ `/{id}`) | `.find` / `.create` / `.update` / `.delete` |
+| GET | /api/assignments?state=&q=&employee_id=&equipment_id= | assignments.list (`q` requiere `.find`) |
+| POST | /api/assignments | assignments.create |
+| PUT | /api/assignments/{id} (notas o transferencia) | assignments.update |
+| POST | /api/assignments/{id}/return | assignments.update |
+| GET | /api/reports/users-summary, /api/reports/inventory-summary | reports.list |

@@ -30,6 +30,7 @@ type RoleRepository interface {
 
 type ReportRepository interface {
 	UsersSummary(ctx context.Context) (*ReportSummary, error)
+	InventorySummary(ctx context.Context) (*InventorySummary, error)
 }
 
 type PasswordHasher interface {
@@ -40,4 +41,39 @@ type PasswordHasher interface {
 type TokenManager interface {
 	Generate(userID int64, remember bool) (token string, expiresAt time.Time, err error)
 	Parse(token string) (userID int64, err error)
+}
+
+type PositionRepository interface {
+	Create(ctx context.Context, p *Position) error
+	GetByID(ctx context.Context, id int64) (*Position, error)
+	List(ctx context.Context, q string) ([]Position, error)
+	Update(ctx context.Context, p *Position) error
+	Delete(ctx context.Context, id int64) error
+}
+
+type EmployeeRepository interface {
+	Create(ctx context.Context, e *Employee) error
+	GetByID(ctx context.Context, id int64) (*Employee, error)
+	List(ctx context.Context, f EmployeeFilter) ([]Employee, error)
+	Update(ctx context.Context, e *Employee) error
+	Delete(ctx context.Context, id int64) error
+}
+
+type EquipmentRepository interface {
+	// CreateMany registra qty unidades iguales; cada una recibe su propio código.
+	CreateMany(ctx context.Context, base *Equipment, qty int) ([]Equipment, error)
+	GetByID(ctx context.Context, id int64) (*Equipment, error)
+	List(ctx context.Context, f EquipmentFilter) ([]Equipment, error)
+	Update(ctx context.Context, e *Equipment) error
+	Delete(ctx context.Context, id int64) error
+}
+
+type AssignmentRepository interface {
+	// Assign, Return y Transfer son atómicos: movimiento + estado del equipo en una transacción.
+	Assign(ctx context.Context, a *Assignment) error
+	GetByID(ctx context.Context, id int64) (*Assignment, error)
+	List(ctx context.Context, f AssignmentFilter) ([]Assignment, error)
+	UpdateNotes(ctx context.Context, id int64, notes string) error
+	Return(ctx context.Context, id, userID int64, notes, equipmentStatus string) error
+	Transfer(ctx context.Context, id, toEmployeeID, userID int64, notes string) (newID int64, err error)
 }

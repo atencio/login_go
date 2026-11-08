@@ -15,3 +15,7 @@ func NewReportService(r domain.ReportRepository) *ReportService { return &Report
 func (s *ReportService) UsersSummary(ctx context.Context) (*domain.ReportSummary, error) {
 	return s.repo.UsersSummary(ctx)
 }
+
+func (s *ReportService) InventorySummary(ctx context.Context) (*domain.InventorySummary, error) {
+	return s.repo.InventorySummary(ctx)
+}

@@ -32,6 +32,8 @@ func main() {
 
 	// Composición: aquí (y solo aquí) se conectan las implementaciones concretas.
 	userRepo, roleRepo, reportRepo := postgres.NewUserRepo(db), postgres.NewRoleRepo(db), postgres.NewReportRepo(db)
+	positionRepo, employeeRepo := postgres.NewPositionRepo(db), postgres.NewEmployeeRepo(db)
+	equipmentRepo, assignmentRepo := postgres.NewEquipmentRepo(db), postgres.NewAssignmentRepo(db)
 	hasher := security.NewBcryptHasher()
 	tokens := security.NewJWTManager(cfg.JWTSecret, cfg.JWTTTL, cfg.JWTRememberTTL)
 
@@ -39,6 +41,10 @@ func main() {
 	userSvc := usecase.NewUserService(userRepo, roleRepo, hasher)
 	roleSvc := usecase.NewRoleService(roleRepo)
 	reportSvc := usecase.NewReportService(reportRepo)
+	positionSvc := usecase.NewPositionService(positionRepo)
+	employeeSvc := usecase.NewEmployeeService(employeeRepo)
+	equipmentSvc := usecase.NewEquipmentService(equipmentRepo)
+	assignmentSvc := usecase.NewAssignmentService(assignmentRepo, equipmentRepo, employeeRepo)
 
 	if created, err := userSvc.EnsureAdmin(ctx, cfg.AdminName, cfg.AdminEmail, cfg.AdminPassword); err != nil {
 		log.Fatalf("admin inicial: %v", err)
@@ -47,7 +53,8 @@ func main() {
 	}
 
 	handler := httpx.NewHandler(authSvc, userSvc, roleSvc, reportSvc)
-	router := httpx.NewRouter(handler, httpx.NewMiddleware(tokens, authSvc), cfg.AllowedOrigin)
+	inventory := httpx.NewInventoryHandler(positionSvc, employeeSvc, equipmentSvc, assignmentSvc)
+	router := httpx.NewRouter(handler, inventory, httpx.NewMiddleware(tokens, authSvc), cfg.AllowedOrigin)
 
 	srv := &nethttp.Server{Addr: ":" + cfg.Port, Handler: router, ReadHeaderTimeout: 5 * time.Second}
 	go func() {

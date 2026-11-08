@@ -63,7 +63,10 @@ func Migrate(ctx context.Context, db *pgxpool.Pool) error {
 			return err
 		}
 	}
-	return nil
+	// El perfil Administrador siempre conserva todos los permisos, incluidos los de módulos nuevos.
+	_, err = db.Exec(ctx, `INSERT INTO role_permissions (role_id, permission_id)
+		SELECT r.id, p.id FROM roles r, permissions p WHERE r.name = $1 ON CONFLICT DO NOTHING`, domain.AdminRoleName)
+	return err
 }
 
 func mapErr(err error) error {

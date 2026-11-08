@@ -10,6 +10,12 @@ const GROUPS = [
     { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
     { to: '/reportes', label: 'Reportes', icon: 'chart', permission: 'reports.list' },
   ] },
+  { label: 'Inventario de activos', items: [
+    { to: '/asignaciones', label: 'Asignaciones', icon: 'swap', permission: 'assignments.list' },
+    { to: '/equipos', label: 'Equipos de oficina', icon: 'monitor', permission: 'equipment.list' },
+    { to: '/funcionarios', label: 'Funcionarios', icon: 'idcard', permission: 'employees.list' },
+    { to: '/cargos', label: 'Cargos', icon: 'briefcase', permission: 'positions.list' },
+  ] },
   { label: 'Administración', items: [
     { to: '/usuarios', label: 'Usuarios', icon: 'users', permission: 'users.list' },
     { to: '/perfiles', label: 'Perfiles', icon: 'shield', permission: 'roles.list' },
