@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
 import Field from '../components/Field';
@@ -30,8 +32,9 @@ export default function Positions() {
   };
 
   return (
-    <>
+    <div className="fill">
       <PageHead title="Cargos" subtitle="Puestos de trabajo a los que pertenecen los funcionarios.">
+        <PageSizeSelect />
         {can('positions.find') && <SearchBox value={q} onChange={setQ} placeholder="Buscar cargo" />}
         <button className="btn btn--outline btn--icon" onClick={reload} aria-label="Actualizar"><Icon name="refresh" size={16} /></button>
         {can('positions.create') && (
@@ -39,14 +42,10 @@ export default function Positions() {
         )}
       </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead><tr><th>Cargo</th><th>Funcionarios</th><th>Estado</th><th className="col-actions" /></tr></thead>
-          <tbody>
-            {loading && <tr><td colSpan="4" className="muted pad">Cargando…</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan="4" className="muted pad">No hay cargos para mostrar.</td></tr>}
-            {rows.map((p) => (
-              <tr key={p.id}>
+      <TableCard rows={rows} loading={loading} cols={4} empty="No hay cargos para mostrar."
+        head={<tr><th>Cargo</th><th>Funcionarios</th><th>Estado</th><th className="col-actions" /></tr>}
+        renderRow={(p) => (
+          <tr key={p.id}>
                 <td><strong>{p.name}</strong><small className="sub">{p.description}</small></td>
                 <td>{p.employee_count}</td>
                 <td><span className={`status ${p.active ? 'status--on' : 'status--off'}`}>{p.active ? 'Activo' : 'Inactivo'}</span></td>
@@ -61,10 +60,7 @@ export default function Positions() {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!form} onClose={() => setForm(null)} title={form?.id ? 'Editar cargo' : 'Nuevo cargo'}>
         {form && (
@@ -79,6 +75,6 @@ export default function Positions() {
           </form>
         )}
       </Modal>
-    </>
+    </div>
   );
 }

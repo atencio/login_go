@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
 import Field from '../components/Field';
@@ -42,8 +44,9 @@ export default function Employees() {
   const selectable = positions.filter((p) => p.active || p.id === Number(form?.position_id));
 
   return (
-    <>
+    <div className="fill">
       <PageHead title="Funcionarios" subtitle="Personas a las que se les asignan los equipos de oficina.">
+        <PageSizeSelect />
         {canFind && <SearchBox value={q} onChange={setQ} placeholder="Buscar por nombre, correo o documento" />}
         {canFind && canOptions && (
           <div className="input input--select">
@@ -61,14 +64,10 @@ export default function Employees() {
         )}
       </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead><tr><th>Funcionario</th><th>Cargo</th><th>Departamento</th><th>Equipos</th><th>Estado</th><th className="col-actions" /></tr></thead>
-          <tbody>
-            {loading && <tr><td colSpan="6" className="muted pad">Cargando…</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan="6" className="muted pad">No hay funcionarios para mostrar.</td></tr>}
-            {rows.map((r) => (
-              <tr key={r.id}>
+      <TableCard rows={rows} loading={loading} cols={6} empty="No hay funcionarios para mostrar."
+        head={<tr><th>Funcionario</th><th>Cargo</th><th>Departamento</th><th>Equipos</th><th>Estado</th><th className="col-actions" /></tr>}
+        renderRow={(r) => (
+          <tr key={r.id}>
                 <td>
                   <div className="cell-user">
                     <span className="avatar">{initials(r.full_name)}</span>
@@ -92,10 +91,7 @@ export default function Employees() {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!form} onClose={() => setForm(null)} title={form?.id ? 'Editar funcionario' : 'Nuevo funcionario'} width={640}>
         {form && (
@@ -125,6 +121,6 @@ export default function Employees() {
       </Modal>
 
       {history && <HistoryModal title={`Historial de ${history.full_name}`} query={{ employee_id: history.id }} onClose={() => setHistory(null)} />}
-    </>
+    </div>
   );
 }

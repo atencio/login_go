@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
 import Field from '../components/Field';
@@ -74,8 +76,9 @@ export default function Equipment() {
   const brandOptions = brands.filter((b) => b.active || b.id === Number(form?.brand_id));
 
   return (
-    <>
+    <div className="fill">
       <PageHead title="Equipos de oficina" subtitle="Inventario de activos: cada unidad tiene su código, su estado y quién la tiene hoy.">
+        <PageSizeSelect />
         {canFind && <SearchBox value={q} onChange={setQ} placeholder="Buscar por código, equipo, serie o responsable" />}
         {canFind && (
           <div className="input input--select">
@@ -91,14 +94,10 @@ export default function Equipment() {
         )}
       </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead><tr><th>Código</th><th>Equipo</th><th>Serie</th><th>Estado</th><th>Asignado a</th><th className="col-actions" /></tr></thead>
-          <tbody>
-            {loading && <tr><td colSpan="6" className="muted pad">Cargando…</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan="6" className="muted pad">No hay equipos para mostrar.</td></tr>}
-            {rows.map((r) => (
-              <tr key={r.id}>
+      <TableCard rows={rows} loading={loading} cols={6} empty="No hay equipos para mostrar."
+        head={<tr><th>Código</th><th>Equipo</th><th>Serie</th><th>Estado</th><th>Asignado a</th><th className="col-actions" /></tr>}
+        renderRow={(r) => (
+          <tr key={r.id}>
                 <td><code className="code">{r.code}</code></td>
                 <td>
                   <strong>{r.name}</strong>
@@ -120,10 +119,7 @@ export default function Equipment() {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!form} onClose={() => setForm(null)} width={680}
              title={form?.id ? `Editar ${form.code}` : 'Nuevo equipo'}>
@@ -194,6 +190,6 @@ export default function Equipment() {
       </Modal>
 
       {history && <HistoryModal title={`Historial de ${history.code} · ${history.name}`} query={{ equipment_id: history.id }} onClose={() => setHistory(null)} />}
-    </>
+    </div>
   );
 }

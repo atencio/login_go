@@ -40,6 +40,13 @@ SOLID: cada capa tiene una sola responsabilidad (S), se extiende agregando casos
 permisos sin tocar los existentes (O), los repositorios son intercambiables por sus interfaces (L),
 los handlers piden interfaces pequeñas (I) y todo depende de abstracciones del dominio (D).
 
+## Interfaz
+
+- **Tablas fijas:** en todas las tablas solo se desplazan las filas; el encabezado, el buscador y el paginador no se mueven.
+- **Paginación** en la parte inferior ("Mostrando 1–10 de 33 registros") y **"Mostrar N registros"** (10, 25, 50 o 100) junto al buscador; la elección vale para todas las tablas.
+- **Tamaño de fuente** (100 %, 90 % o 80 %) en la barra superior: escala texto, espacios e iconos. Las dos preferencias se recuerdan en el navegador.
+- La paginación se hace en el navegador sobre la lista que devuelve la API; si algún día una tabla supera varios miles de filas conviene paginar también en el servidor.
+
 ## Inventario de asignación de activos
 
 Menú **Inventario de activos**:

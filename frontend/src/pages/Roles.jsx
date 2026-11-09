@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
+import PageHead from '../components/PageHead';
 import { api } from '../api/client';
 import { loadCatalog } from '../api/catalog';
 import Icon from '../components/Icon';
@@ -78,30 +81,20 @@ export default function Roles() {
   };
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1>Perfiles</h1>
-          <p className="muted">Define qué puede hacer cada perfil en cada módulo.</p>
-        </div>
-        <div className="page-head__actions">
+    <div className="fill">
+      <PageHead title="Perfiles" subtitle="Define qué puede hacer cada perfil en cada módulo.">
+        <PageSizeSelect />
+
           <button className="btn btn--outline btn--icon" onClick={load} aria-label="Actualizar"><Icon name="refresh" size={16} /></button>
           {can('roles.create') && (
             <button className="btn btn--primary" onClick={openCreate}><Icon name="plus" size={16} />Nuevo perfil</button>
           )}
-        </div>
-      </div>
+      </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead>
-            <tr><th>Perfil</th><th>Permisos</th><th>Usuarios</th><th className="col-actions" /></tr>
-          </thead>
-          <tbody>
-            {loading && <tr><td colSpan="4" className="muted pad">Cargando…</td></tr>}
-            {!loading && roles.length === 0 && <tr><td colSpan="4" className="muted pad">Aún no hay perfiles.</td></tr>}
-            {roles.map((r) => (
-              <tr key={r.id}>
+      <TableCard rows={roles} loading={loading} cols={4} empty="Aún no hay perfiles."
+        head={<tr><th>Perfil</th><th>Permisos</th><th>Usuarios</th><th className="col-actions" /></tr>}
+        renderRow={(r) => (
+          <tr key={r.id}>
                 <td>
                   <strong>{r.name}</strong>
                   {r.locked && <span className="tag">Protegido</span>}
@@ -120,10 +113,7 @@ export default function Roles() {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!editor} onClose={() => setEditor(null)} width={860}
              title={editor?.readOnly ? `Perfil ${editor.name}` : editor?.id ? 'Editar perfil' : 'Nuevo perfil'}>
@@ -151,6 +141,6 @@ export default function Roles() {
           </form>
         )}
       </Modal>
-    </>
+    </div>
   );
 }

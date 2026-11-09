@@ -4,6 +4,7 @@ import Icon from '../components/Icon';
 import ProfileModal, { initials } from '../components/ProfileModal';
 import { useAuth } from '../context/AuthContext';
 import { useAlert } from '../context/AlertContext';
+import { SCALES, usePrefs } from '../context/PrefsContext';
 
 const GROUPS = [
   { label: null, items: [
@@ -27,6 +28,7 @@ const GROUPS = [
 export default function DashboardLayout() {
   const { user, can, logout } = useAuth();
   const alert = useAlert();
+  const { scale, setScale } = usePrefs();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar') === 'collapsed');
   const [profileOpen, setProfileOpen] = useState(false);
@@ -101,6 +103,13 @@ export default function DashboardLayout() {
         </div>
 
         <div className="header__right">
+          <div className="scale" role="group" aria-label="Tamaño de la fuente" title="Tamaño de la fuente">
+            <span className="scale__icon" aria-hidden="true">Aa</span>
+            {SCALES.map((s) => (
+              <button key={s} className={s === scale ? 'scale__btn scale__btn--on' : 'scale__btn'}
+                      aria-pressed={s === scale} onClick={() => setScale(s)}>{s}%</button>
+            ))}
+          </div>
           <button className="icon-btn" onClick={toggleFullscreen} aria-label="Pantalla completa"><Icon name="expand" size={18} /></button>
           <div className="usermenu" ref={menuRef}>
             <button className="usermenu__btn" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen}>

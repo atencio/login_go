@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
 import Field from '../components/Field';
@@ -24,8 +26,9 @@ export default function CatalogPage({ cfg }) {
   };
 
   return (
-    <>
+    <div className="fill">
       <PageHead title={cfg.title} subtitle={cfg.subtitle}>
+        <PageSizeSelect />
         {can(`${cfg.perm}.find`) && <SearchBox value={q} onChange={setQ} placeholder={`Buscar ${cfg.singular}`} />}
         <button className="btn btn--outline btn--icon" onClick={reload} aria-label="Actualizar"><Icon name="refresh" size={16} /></button>
         {can(`${cfg.perm}.create`) && (
@@ -35,14 +38,10 @@ export default function CatalogPage({ cfg }) {
         )}
       </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead><tr><th>Nombre</th><th>Equipos</th><th>Estado</th><th className="col-actions" /></tr></thead>
-          <tbody>
-            {loading && <tr><td colSpan="4" className="muted pad">Cargando…</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan="4" className="muted pad">No hay registros para mostrar.</td></tr>}
-            {rows.map((r) => (
-              <tr key={r.id}>
+      <TableCard rows={rows} loading={loading} cols={4} empty="No hay registros para mostrar."
+        head={<tr><th>Nombre</th><th>Equipos</th><th>Estado</th><th className="col-actions" /></tr>}
+        renderRow={(r) => (
+          <tr key={r.id}>
                 <td><strong>{r.name}</strong></td>
                 <td>{r.equipment_count}</td>
                 <td><span className={`status ${r.active ? 'status--on' : 'status--off'}`}>{r.active ? 'Activa' : 'Inactiva'}</span></td>
@@ -57,10 +56,7 @@ export default function CatalogPage({ cfg }) {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!form} onClose={() => setForm(null)} width={440}
              title={form?.id ? `Editar ${cfg.singular}` : `Nueva ${cfg.singular}`}>
@@ -81,6 +77,6 @@ export default function CatalogPage({ cfg }) {
           </form>
         )}
       </Modal>
-    </>
+    </div>
   );
 }

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
 import { api } from '../api/client';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
@@ -31,8 +33,9 @@ export default function Assignments() {
   };
 
   return (
-    <>
+    <div className="fill">
       <PageHead title="Asignaciones" subtitle="Entrega, actualiza y devuelve equipos; cada movimiento queda en el historial.">
+        <PageSizeSelect />
         {canFind && <SearchBox value={q} onChange={setQ} placeholder="Buscar por equipo, código o funcionario" />}
         {tab === 'history' && (
           <div className="input input--select">
@@ -54,15 +57,11 @@ export default function Assignments() {
         <button role="tab" aria-selected={tab === 'history'} className={tab === 'history' ? 'tab tab--on' : 'tab'} onClick={() => setTab('history')}>Historial</button>
       </div>
 
-      <div className="card card--table">
-        {tab === 'active' ? (
-          <table className="table">
-            <thead><tr><th>Equipo</th><th>Funcionario</th><th>Entregado</th><th>Notas</th><th className="col-actions col-actions--wide" /></tr></thead>
-            <tbody>
-              {loading && <tr><td colSpan="5" className="muted pad">Cargando…</td></tr>}
-              {!loading && rows.length === 0 && <tr><td colSpan="5" className="muted pad">No hay equipos asignados en este momento.</td></tr>}
-              {rows.map((a) => (
-                <tr key={a.id}>
+      {tab === 'active' ? (
+        <TableCard key="active" rows={rows} loading={loading} cols={5} empty="No hay equipos asignados en este momento."
+        head={<tr><th>Equipo</th><th>Funcionario</th><th>Entregado</th><th>Notas</th><th className="col-actions col-actions--wide" /></tr>}
+        renderRow={(a) => (
+          <tr key={a.id}>
                   <td><code className="code">{a.equipment_code}</code><div>{a.equipment_name}</div></td>
                   <td>{a.employee}</td>
                   <td>{fmtDateTime(a.assigned_at)}<small className="sub">{a.assigned_by && `por ${a.assigned_by}`}</small></td>
@@ -77,17 +76,12 @@ export default function Assignments() {
                     )}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="table">
-            <thead><tr><th>Equipo</th><th>Funcionario</th><th>Entrega</th><th>Devolución</th><th>Notas</th></tr></thead>
-            <tbody>
-              {loading && <tr><td colSpan="5" className="muted pad">Cargando…</td></tr>}
-              {!loading && rows.length === 0 && <tr><td colSpan="5" className="muted pad">No hay movimientos para mostrar.</td></tr>}
-              {rows.map((a) => (
-                <tr key={a.id}>
+        )} />
+      ) : (
+        <TableCard key="history" rows={rows} loading={loading} cols={5} empty="No hay movimientos para mostrar."
+        head={<tr><th>Equipo</th><th>Funcionario</th><th>Entrega</th><th>Devolución</th><th>Notas</th></tr>}
+        renderRow={(a) => (
+          <tr key={a.id}>
                   <td><code className="code">{a.equipment_code}</code><div>{a.equipment_name}</div></td>
                   <td>{a.employee}</td>
                   <td>{fmtDateTime(a.assigned_at)}<small className="sub">{a.assigned_by && `por ${a.assigned_by}`}</small></td>
@@ -98,11 +92,8 @@ export default function Assignments() {
                   </td>
                   <td className="notes">{[a.delivery_notes, a.return_notes].filter(Boolean).join(' · ') || '—'}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+        )} />
+      )}
 
       {modal?.type === 'assign' && <AssignModal onClose={() => setModal(null)} onSaved={done} />}
       {modal?.type === 'update' && <UpdateModal row={modal.row} onClose={() => setModal(null)} onSaved={done} />}
@@ -111,7 +102,7 @@ export default function Assignments() {
         <HistoryModal title={`Historial de ${modal.row.equipment_code} · ${modal.row.equipment_name}`}
                       query={{ equipment_id: modal.row.equipment_id }} onClose={() => setModal(null)} />
       )}
-    </>
+    </div>
   );
 }
 

@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import TableCard from '../components/TableCard';
+import PageSizeSelect from '../components/PageSizeSelect';
+import PageHead from '../components/PageHead';
 import { api } from '../api/client';
 import Icon from '../components/Icon';
 import Modal from '../components/Modal';
@@ -79,13 +82,10 @@ export default function Users() {
   };
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1>Usuarios</h1>
-          <p className="muted">Crea cuentas y asigna el perfil que define sus permisos.</p>
-        </div>
-        <div className="page-head__actions">
+    <div className="fill">
+      <PageHead title="Usuarios" subtitle="Crea cuentas y asigna el perfil que define sus permisos.">
+        <PageSizeSelect />
+
           {can('users.find') && (
             <div className="input input--search">
               <Icon name="search" size={16} />
@@ -96,19 +96,12 @@ export default function Users() {
           {can('users.create') && (
             <button className="btn btn--primary" onClick={openCreate}><Icon name="plus" size={16} />Nuevo usuario</button>
           )}
-        </div>
-      </div>
+      </PageHead>
 
-      <div className="card card--table">
-        <table className="table">
-          <thead>
-            <tr><th>Usuario</th><th>Perfil</th><th>Estado</th><th className="col-actions" /></tr>
-          </thead>
-          <tbody>
-            {loading && <tr><td colSpan="4" className="muted pad">Cargando…</td></tr>}
-            {!loading && users.length === 0 && <tr><td colSpan="4" className="muted pad">No hay usuarios para mostrar.</td></tr>}
-            {users.map((u) => (
-              <tr key={u.id}>
+      <TableCard rows={users} loading={loading} cols={4} empty="No hay usuarios para mostrar."
+        head={<tr><th>Usuario</th><th>Perfil</th><th>Estado</th><th className="col-actions" /></tr>}
+        renderRow={(u) => (
+          <tr key={u.id}>
                 <td>
                   <div className="cell-user">
                     <span className="avatar">{initials(u.name)}</span>
@@ -126,10 +119,7 @@ export default function Users() {
                   )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        )} />
 
       <Modal open={!!form} onClose={() => setForm(null)} title={form?.id ? 'Editar usuario' : 'Nuevo usuario'}>
         {form && (
@@ -153,6 +143,6 @@ export default function Users() {
           </form>
         )}
       </Modal>
-    </>
+    </div>
   );
 }
