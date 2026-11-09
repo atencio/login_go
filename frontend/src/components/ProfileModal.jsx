@@ -17,7 +17,7 @@ export default function ProfileModal({ open, onClose }) {
 
   if (!user) return null;
   return (
-    <Modal open={open} onClose={onClose} title="Mi perfil" width={780}>
+    <Modal open={open} onClose={onClose} title="Mi perfil" width={1080}>
       <div className="profile__head">
         <div className="avatar avatar--lg">{initials(user.name)}</div>
         <div>

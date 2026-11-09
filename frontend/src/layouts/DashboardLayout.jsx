@@ -1,29 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../components/Icon';
 import ProfileModal, { initials } from '../components/ProfileModal';
 import { useAuth } from '../context/AuthContext';
 import { useAlert } from '../context/AlertContext';
 import { SCALES, usePrefs } from '../context/PrefsContext';
-
-const GROUPS = [
-  { label: null, items: [
-    { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
-    { to: '/reportes', label: 'Reportes', icon: 'chart', permission: 'reports.list' },
-  ] },
-  { label: 'Inventario de activos', items: [
-    { to: '/asignaciones', label: 'Asignaciones', icon: 'swap', permission: 'assignments.list' },
-    { to: '/equipos', label: 'Equipos de oficina', icon: 'monitor', permission: 'equipment.list' },
-    { to: '/funcionarios', label: 'Funcionarios', icon: 'idcard', permission: 'employees.list' },
-    { to: '/cargos', label: 'Cargos', icon: 'briefcase', permission: 'positions.list' },
-    { to: '/categorias', label: 'Categorías', icon: 'tag', permission: 'categories.list' },
-    { to: '/marcas', label: 'Marcas', icon: 'award', permission: 'brands.list' },
-  ] },
-  { label: 'Administración', items: [
-    { to: '/usuarios', label: 'Usuarios', icon: 'users', permission: 'users.list' },
-    { to: '/perfiles', label: 'Perfiles', icon: 'shield', permission: 'roles.list' },
-  ] },
-];
+import { NAV_GROUPS } from '../navigation';
 
 export default function DashboardLayout() {
   const { user, can, logout } = useAuth();
@@ -33,16 +15,27 @@ export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar') === 'collapsed');
   const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+  const [openGroup, setOpenGroup] = useState(undefined); // un solo grupo desplegado a la vez; null = el usuario recogió todos
   const [q, setQ] = useState('');
   const [searchFocus, setSearchFocus] = useState(false);
   const searchRef = useRef(null);
   const menuRef = useRef(null);
 
-  const groups = useMemo(() => GROUPS
+  const groups = useMemo(() => NAV_GROUPS
     .map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || can(i.permission)) }))
     .filter((g) => g.items.length), [can]);
+  const isActive = (to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`));
+  const activeGroup = groups.find((g) => g.label && g.items.some((i) => isActive(i.to)))?.label;
+  const firstGroup = groups.find((g) => g.label)?.label ?? null;
+  const toggleGroup = (label) => setOpenGroup((cur) => (cur === label ? null : label));
   const allItems = groups.flatMap((g) => g.items);
   const results = allItems.filter((i) => i.label.toLowerCase().includes(q.trim().toLowerCase()));
+
+  // Al entrar a una página (o navegar con el buscador) se despliega su grupo y se recogen los demás.
+  useEffect(() => {
+    setOpenGroup((cur) => activeGroup ?? (cur === undefined ? firstGroup : cur));
+  }, [activeGroup, firstGroup]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -130,18 +123,31 @@ export default function DashboardLayout() {
 
       <aside className="sidebar">
         <nav>
-          {groups.map((g, i) => (
-            <div key={i} className="nav-group">
-              {g.label && <div className="nav-group__label">{g.label}</div>}
-              {g.items.map((n) => (
-                <NavLink key={n.to} to={n.to} end={n.end} title={collapsed ? n.label : undefined}
-                         className={({ isActive }) => `nav-link ${isActive ? 'nav-link--active' : ''}`}>
-                  <Icon name={n.icon} size={18} />
-                  <span className="nav-link__label">{n.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
+          {groups.map((g, i) => {
+            const open = !g.label || openGroup === g.label; // el grupo sin título (Dashboard, Reportes) siempre se ve
+            return (
+              <div key={i} className={open ? 'nav-group nav-group--open' : 'nav-group'}>
+                {g.label && (
+                  <button className="nav-group__label" aria-expanded={open} aria-controls={`nav-group-${i}`}
+                          onClick={() => toggleGroup(g.label)}>
+                    <span>{g.label}</span>
+                    <Icon name="chevronDown" size={14} />
+                  </button>
+                )}
+                <div className="nav-group__items" id={`nav-group-${i}`}>
+                  <div>
+                    {g.items.map((n) => (
+                      <NavLink key={n.to} to={n.to} end={n.end} title={collapsed ? n.label : undefined}
+                               className={({ isActive: on }) => `nav-link ${on ? 'nav-link--active' : ''}`}>
+                        <Icon name={n.icon} size={18} />
+                        <span className="nav-link__label">{n.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </nav>
       </aside>
 

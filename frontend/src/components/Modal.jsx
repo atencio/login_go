@@ -12,7 +12,7 @@ export default function Modal({ open, title, onClose, children, width = 520 }) {
   if (!open) return null;
   return (
     <div className="overlay" onMouseDown={onClose}>
-      <div className="modal" style={{ maxWidth: `${width / 16}rem` }} role="dialog" aria-modal="true"
+      <div className={width >= 1000 ? 'modal modal--xl' : 'modal'} style={{ maxWidth: `${width / 16}rem` }} role="dialog" aria-modal="true"
            aria-label={title} onMouseDown={(e) => e.stopPropagation()}>
         <header className="modal__head">
           <h2>{title}</h2>

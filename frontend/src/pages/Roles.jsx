@@ -47,6 +47,10 @@ export default function Roles() {
     ...ed,
     permissions: ed.permissions.includes(code) ? ed.permissions.filter((c) => c !== code) : [...ed.permissions, code],
   }));
+  const setMany = (codes, on) => setEditor((ed) => ({
+    ...ed,
+    permissions: on ? [...new Set([...ed.permissions, ...codes])] : ed.permissions.filter((c) => !codes.includes(c)),
+  }));
   const setAll = (on) => setEditor((ed) => ({ ...ed, permissions: on ? catalog.map((p) => p.code) : [] }));
 
   const save = async (e) => {
@@ -115,7 +119,7 @@ export default function Roles() {
               </tr>
         )} />
 
-      <Modal open={!!editor} onClose={() => setEditor(null)} width={860}
+      <Modal open={!!editor} onClose={() => setEditor(null)} width={1180}
              title={editor?.readOnly ? `Perfil ${editor.name}` : editor?.id ? 'Editar perfil' : 'Nuevo perfil'}>
         {editor && (
           <form onSubmit={save}>
@@ -125,8 +129,8 @@ export default function Roles() {
                        placeholder="Ej. Reclutador" onChange={(e) => setEditor({ ...editor, name: e.target.value })} /></div>
               </label>
             )}
-            <PermissionMatrix catalog={catalog} value={editor.permissions} readOnly={editor.readOnly} onToggle={toggle} />
-            <div className="modal__foot modal__foot--split">
+            <PermissionMatrix catalog={catalog} value={editor.permissions} readOnly={editor.readOnly} onToggle={toggle} onToggleMany={setMany} />
+            <div className="modal__foot modal__foot--split modal__foot--sticky">
               {!editor.readOnly ? (
                 <div className="link-group">
                   <button type="button" className="link" onClick={() => setAll(true)}>Marcar todo</button>

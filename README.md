@@ -45,6 +45,8 @@ los handlers piden interfaces pequeñas (I) y todo depende de abstracciones del 
 - **Tablas fijas:** en todas las tablas solo se desplazan las filas; el encabezado, el buscador y el paginador no se mueven.
 - **Paginación** en la parte inferior ("Mostrando 1–10 de 33 registros") y **"Mostrar N registros"** (10, 25, 50 o 100) junto al buscador; la elección vale para todas las tablas.
 - **Tamaño de fuente** (100 %, 90 % o 80 %) en la barra superior: escala texto, espacios e iconos. Las dos preferencias se recuerdan en el navegador.
+- **Menú lateral por grupos plegables:** cada título (Inventario de activos, Administración) se recoge dejando solo el título; solo hay un grupo desplegado a la vez (al abrir uno, el otro se recoge) y al entrar a una página se despliega su grupo. Con el menú reducido a iconos se ven todos.
+- **Permisos del perfil en paneles agrupados como el menú** (General, Inventario de activos, Administración), en dos columnas dentro de un modal grande: cada panel tiene su tabla de módulos con casillas por acción y enlaces "Todos | Ninguno"; las celdas que no aplican llevan un punto gris. Ambos salen de `src/navigation.js`: un módulo nuevo se agrega ahí una sola vez.
 - La paginación se hace en el navegador sobre la lista que devuelve la API; si algún día una tabla supera varios miles de filas conviene paginar también en el servidor.
 
 ## Inventario de asignación de activos
