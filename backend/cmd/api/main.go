@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"nexo/internal/config"
+	"nexo/internal/domain"
 	"nexo/internal/repository/postgres"
 	"nexo/internal/security"
 	httpx "nexo/internal/transport/http"
@@ -34,6 +35,8 @@ func main() {
 	userRepo, roleRepo, reportRepo := postgres.NewUserRepo(db), postgres.NewRoleRepo(db), postgres.NewReportRepo(db)
 	positionRepo, employeeRepo := postgres.NewPositionRepo(db), postgres.NewEmployeeRepo(db)
 	equipmentRepo, assignmentRepo := postgres.NewEquipmentRepo(db), postgres.NewAssignmentRepo(db)
+	categoryRepo := postgres.NewCatalogRepo(db, postgres.CategorySpec)
+	brandRepo := postgres.NewCatalogRepo(db, postgres.BrandSpec)
 	hasher := security.NewBcryptHasher()
 	tokens := security.NewJWTManager(cfg.JWTSecret, cfg.JWTTTL, cfg.JWTRememberTTL)
 
@@ -54,7 +57,9 @@ func main() {
 
 	handler := httpx.NewHandler(authSvc, userSvc, roleSvc, reportSvc)
 	inventory := httpx.NewInventoryHandler(positionSvc, employeeSvc, equipmentSvc, assignmentSvc)
-	router := httpx.NewRouter(handler, inventory, httpx.NewMiddleware(tokens, authSvc), cfg.AllowedOrigin)
+	categories := httpx.NewCatalogHandler(usecase.NewCatalogService(categoryRepo, "categoría"), domain.PermCategoriesFind)
+	brands := httpx.NewCatalogHandler(usecase.NewCatalogService(brandRepo, "marca"), domain.PermBrandsFind)
+	router := httpx.NewRouter(handler, inventory, categories, brands, httpx.NewMiddleware(tokens, authSvc), cfg.AllowedOrigin)
 
 	srv := &nethttp.Server{Addr: ":" + cfg.Port, Handler: router, ReadHeaderTimeout: 5 * time.Second}
 	go func() {

@@ -60,8 +60,9 @@ type EmployeeRepository interface {
 }
 
 type EquipmentRepository interface {
-	// CreateMany registra qty unidades iguales; cada una recibe su propio código.
-	CreateMany(ctx context.Context, base *Equipment, qty int) ([]Equipment, error)
+	// CreateMany registra una unidad por cada número de serie recibido (vacío = sin serie);
+	// cada unidad recibe su propio código.
+	CreateMany(ctx context.Context, base *Equipment, serials []string) ([]Equipment, error)
 	GetByID(ctx context.Context, id int64) (*Equipment, error)
 	List(ctx context.Context, f EquipmentFilter) ([]Equipment, error)
 	Update(ctx context.Context, e *Equipment) error
@@ -76,4 +77,13 @@ type AssignmentRepository interface {
 	UpdateNotes(ctx context.Context, id int64, notes string) error
 	Return(ctx context.Context, id, userID int64, notes, equipmentStatus string) error
 	Transfer(ctx context.Context, id, toEmployeeID, userID int64, notes string) (newID int64, err error)
+}
+
+// CatalogRepository sirve tanto para categorías como para marcas (misma forma, distinta tabla).
+type CatalogRepository interface {
+	Create(ctx context.Context, c *CatalogItem) error
+	GetByID(ctx context.Context, id int64) (*CatalogItem, error)
+	List(ctx context.Context, q string) ([]CatalogItem, error)
+	Update(ctx context.Context, c *CatalogItem) error
+	Delete(ctx context.Context, id int64) error
 }

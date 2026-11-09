@@ -15,6 +15,8 @@ const GROUPS = [
     { to: '/equipos', label: 'Equipos de oficina', icon: 'monitor', permission: 'equipment.list' },
     { to: '/funcionarios', label: 'Funcionarios', icon: 'idcard', permission: 'employees.list' },
     { to: '/cargos', label: 'Cargos', icon: 'briefcase', permission: 'positions.list' },
+    { to: '/categorias', label: 'Categorías', icon: 'tag', permission: 'categories.list' },
+    { to: '/marcas', label: 'Marcas', icon: 'award', permission: 'brands.list' },
   ] },
   { label: 'Administración', items: [
     { to: '/usuarios', label: 'Usuarios', icon: 'users', permission: 'users.list' },

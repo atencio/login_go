@@ -10,6 +10,8 @@ import Positions from './pages/Positions';
 import Employees from './pages/Employees';
 import Equipment from './pages/Equipment';
 import Assignments from './pages/Assignments';
+import Categories from './pages/Categories';
+import Brands from './pages/Brands';
 
 export default function App() {
   return (
@@ -32,6 +34,12 @@ export default function App() {
           </Route>
           <Route element={<ProtectedRoute permission="positions.list" />}>
             <Route path="cargos" element={<Positions />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="categories.list" />}>
+            <Route path="categorias" element={<Categories />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="brands.list" />}>
+            <Route path="marcas" element={<Brands />} />
           </Route>
           <Route element={<ProtectedRoute permission="roles.list" />}>
             <Route path="perfiles" element={<Roles />} />

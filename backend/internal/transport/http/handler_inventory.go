@@ -29,7 +29,7 @@ type EmployeeUseCase interface {
 type EquipmentUseCase interface {
 	List(ctx context.Context, f domain.EquipmentFilter) ([]domain.Equipment, error)
 	Get(ctx context.Context, id int64) (*domain.Equipment, error)
-	Create(ctx context.Context, in usecase.EquipmentInput, qty int) ([]domain.Equipment, error)
+	Create(ctx context.Context, in usecase.EquipmentInput, qty int, serials []string) ([]domain.Equipment, error)
 	Update(ctx context.Context, id int64, in usecase.EquipmentInput) (*domain.Equipment, error)
 	Delete(ctx context.Context, id int64) error
 }
@@ -374,7 +374,9 @@ type equipmentDTO struct {
 	ID           int64     `json:"id"`
 	Code         string    `json:"code"`
 	Name         string    `json:"name"`
+	CategoryID   int64     `json:"category_id"`
 	Category     string    `json:"category"`
+	BrandID      int64     `json:"brand_id"`
 	Brand        string    `json:"brand"`
 	Model        string    `json:"model"`
 	Serial       string    `json:"serial_number"`
@@ -389,10 +391,11 @@ type equipmentDTO struct {
 
 type equipmentRequest struct {
 	Name         string   `json:"name"`
-	Category     string   `json:"category"`
-	Brand        string   `json:"brand"`
+	CategoryID   int64    `json:"category_id"`
+	BrandID      int64    `json:"brand_id"`
 	Model        string   `json:"model"`
-	Serial       string   `json:"serial_number"`
+	Serial       string   `json:"serial_number"` // al editar una unidad
+	Serials      []string `json:"serials"`       // al crear: una serie por unidad
 	Status       string   `json:"status"`
 	PurchaseDate string   `json:"purchase_date"`
 	Cost         *float64 `json:"cost"`
@@ -405,8 +408,12 @@ func toEquipmentDTO(q domain.Equipment) equipmentDTO {
 	if q.HolderName != nil {
 		holder = *q.HolderName
 	}
-	return equipmentDTO{q.ID, q.Code, q.Name, q.Category, q.Brand, q.Model, q.Serial, q.Status,
-		fmtDate(q.PurchaseDate), q.Cost, q.Notes, q.HolderID, holder, q.CreatedAt}
+	return equipmentDTO{
+		ID: q.ID, Code: q.Code, Name: q.Name, CategoryID: q.CategoryID, Category: q.CategoryName,
+		BrandID: q.BrandID, Brand: q.BrandName, Model: q.Model, Serial: q.Serial, Status: q.Status,
+		PurchaseDate: fmtDate(q.PurchaseDate), Cost: q.Cost, Notes: q.Notes, HolderID: q.HolderID,
+		Holder: holder, CreatedAt: q.CreatedAt,
+	}
 }
 
 func (req equipmentRequest) input() (usecase.EquipmentInput, error) {
@@ -415,7 +422,7 @@ func (req equipmentRequest) input() (usecase.EquipmentInput, error) {
 		return usecase.EquipmentInput{}, err
 	}
 	return usecase.EquipmentInput{
-		Name: req.Name, Category: req.Category, Brand: req.Brand, Model: req.Model, Serial: req.Serial,
+		Name: req.Name, CategoryID: req.CategoryID, BrandID: req.BrandID, Model: req.Model, Serial: req.Serial,
 		Status: req.Status, PurchaseDate: pd, Cost: req.Cost, Notes: req.Notes,
 	}, nil
 }
@@ -458,7 +465,7 @@ func (h *InventoryHandler) EquipmentOptions(w http.ResponseWriter, r *http.Reque
 	}
 	out := make([]option, 0, len(list))
 	for _, q := range list {
-		out = append(out, option{q.ID, q.Code, q.Name, q.Brand, q.Model})
+		out = append(out, option{q.ID, q.Code, q.Name, q.BrandName, q.Model})
 	}
 	writeJSON(w, http.StatusOK, out)
 }
@@ -489,7 +496,7 @@ func (h *InventoryHandler) CreateEquipment(w http.ResponseWriter, r *http.Reques
 		writeError(w, err)
 		return
 	}
-	list, err := h.equipment.Create(r.Context(), in, req.Quantity)
+	list, err := h.equipment.Create(r.Context(), in, req.Quantity, req.Serials)
 	if err != nil {
 		writeError(w, err)
 		return

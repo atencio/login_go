@@ -46,7 +46,8 @@ Menú **Inventario de activos**:
 
 - **Cargos**: CRUD de puestos (no se elimina un cargo con funcionarios).
 - **Funcionarios**: CRUD con nombre, apellido, correo, documento, teléfono, cargo, departamento, fecha de ingreso y estado. Botón de historial por funcionario.
-- **Equipos de oficina**: CRUD de activos. Al **crear** se digita la **cantidad**: se generan N unidades, cada una con su código (`EQ-00001`…). Después cada unidad se edita por separado (no hay cantidad al editar).
+- **Categorías** y **Marcas**: catálogos parametrizables (CRUD) que alimentan las listas del formulario de equipos. Vienen cargados con categorías de oficina y marcas habituales; no se elimina una con equipos asociados (se desactiva y deja de ofrecerse).
+- **Equipos de oficina**: CRUD de activos con categoría y marca elegidas de esos catálogos. Al **crear** se digita la **cantidad** N: se generan N unidades con su código (`EQ-00001`…) y el formulario habilita **N campos de serie**, uno por unidad (la serie es única por equipo; pueden quedar vacías). Después cada unidad se edita por separado (no hay cantidad al editar).
   Estados: disponible, asignado, en mantenimiento y dado de baja. Muestra quién tiene cada equipo.
 - **Asignaciones**: pestaña *Asignaciones activas* (nueva asignación, **actualizar** = cambiar notas o transferir a otro funcionario, **devolver** dejando el equipo disponible, en mantenimiento o dado de baja) y pestaña *Historial* con todos los movimientos.
 
@@ -59,7 +60,7 @@ Reglas que garantiza el backend:
 ## Perfiles y permisos
 
 Usuario → Perfil (rol) → Permisos. Cada permiso es una celda de la matriz **módulo × acción**
-(`users.*`, `roles.*`, `positions.*`, `employees.*`, `equipment.*`, `assignments.*`, `reports.list`):
+(`users.*`, `roles.*`, `positions.*`, `employees.*`, `equipment.*`, `assignments.*`, `categories.*`, `brands.*`, `reports.list`):
 Crear, Listar, Encontrar (buscar / ver detalle), Editar y Eliminar.
 
 - La pantalla **Perfiles** crea, edita, consulta y elimina perfiles con la matriz de interruptores.
@@ -91,7 +92,9 @@ Crear, Listar, Encontrar (buscar / ver detalle), Editar y Eliminar.
 | GET | /api/roles/{id} | roles.find |
 | POST / PUT / DELETE | /api/roles, /api/roles/{id} | roles.create / update / delete |
 | GET | /api/positions, /api/employees, /api/equipment | positions / employees / equipment `.list` (con `q` o filtros: `.find`) |
-| GET | /api/positions/options, /api/employees/options, /api/equipment/options | para selectores de formularios |
+| GET / POST / PUT / DELETE | /api/categories, /api/brands (+ `/{id}`) | categories / brands `.list` / `.create` / `.update` / `.delete` (`q` y `/{id}`: `.find`) |
+| GET | /api/positions/options, /api/employees/options, /api/equipment/options, /api/categories/options, /api/brands/options | para selectores de formularios |
+| POST | /api/equipment | body con `quantity` y `serials` (una serie por unidad) |
 | GET / POST / PUT / DELETE | /api/positions, /api/employees, /api/equipment (+ `/{id}`) | `.find` / `.create` / `.update` / `.delete` |
 | GET | /api/assignments?state=&q=&employee_id=&equipment_id= | assignments.list (`q` requiere `.find`) |
 | POST | /api/assignments | assignments.create |

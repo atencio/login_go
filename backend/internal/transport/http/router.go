@@ -6,7 +6,7 @@ import (
 	"nexo/internal/domain"
 )
 
-func NewRouter(h *Handler, ih *InventoryHandler, m *Middleware, allowedOrigin string) http.Handler {
+func NewRouter(h *Handler, ih *InventoryHandler, categories, brands *CatalogHandler, m *Middleware, allowedOrigin string) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -64,6 +64,14 @@ func NewRouter(h *Handler, ih *InventoryHandler, m *Middleware, allowedOrigin st
 	mux.Handle("PUT /api/equipment/{id}", m.Require(domain.PermEquipmentUpdate, ih.UpdateEquipment))
 	mux.Handle("DELETE /api/equipment/{id}", m.Require(domain.PermEquipmentDelete, ih.DeleteEquipment))
 
+	// Categorías y marcas de equipos (catálogos parametrizables)
+	catalogRoutes(mux, m, "/api/categories", categories, catalogPerms{
+		domain.PermCategoriesCreate, domain.PermCategoriesList, domain.PermCategoriesFind,
+		domain.PermCategoriesUpdate, domain.PermCategoriesDelete})
+	catalogRoutes(mux, m, "/api/brands", brands, catalogPerms{
+		domain.PermBrandsCreate, domain.PermBrandsList, domain.PermBrandsFind,
+		domain.PermBrandsUpdate, domain.PermBrandsDelete})
+
 	// Asignaciones e historial (no se borran: son el registro de auditoría)
 	mux.Handle("GET /api/assignments", m.Require(domain.PermAssignmentsList, ih.ListAssignments))
 	mux.Handle("GET /api/assignments/{id}", m.Require(domain.PermAssignmentsFind, ih.GetAssignment))
@@ -76,4 +84,17 @@ func NewRouter(h *Handler, ih *InventoryHandler, m *Middleware, allowedOrigin st
 	mux.Handle("GET /api/reports/inventory-summary", m.Require(domain.PermReportsList, h.InventorySummary))
 
 	return CORS(allowedOrigin, mux)
+}
+
+type catalogPerms struct{ create, list, find, update, delete string }
+
+// catalogRoutes registra el CRUD completo de un catálogo bajo la ruta base indicada.
+func catalogRoutes(mux *http.ServeMux, m *Middleware, base string, h *CatalogHandler, p catalogPerms) {
+	mux.Handle("GET "+base, m.Require(p.list, h.List))
+	mux.Handle("GET "+base+"/options", m.RequireAny(
+		[]string{domain.PermEquipmentCreate, domain.PermEquipmentUpdate, p.list}, h.Options))
+	mux.Handle("GET "+base+"/{id}", m.Require(p.find, h.Get))
+	mux.Handle("POST "+base, m.Require(p.create, h.Create))
+	mux.Handle("PUT "+base+"/{id}", m.Require(p.update, h.Update))
+	mux.Handle("DELETE "+base+"/{id}", m.Require(p.delete, h.Delete))
 }

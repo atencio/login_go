@@ -47,8 +47,9 @@ func (r *ReportRepo) InventorySummary(ctx context.Context) (*domain.InventorySum
 	if err := r.db.QueryRow(ctx, `SELECT count(*) FROM employees WHERE active`).Scan(&s.Employees); err != nil {
 		return nil, err
 	}
-	rows, err := r.db.Query(ctx, `SELECT COALESCE(NULLIF(category, ''), 'Sin categoría'), count(*)
-		FROM equipment GROUP BY 1 ORDER BY 2 DESC, 1`)
+	rows, err := r.db.Query(ctx, `SELECT COALESCE(c.name, 'Sin categoría'), count(*)
+		FROM equipment q LEFT JOIN equipment_categories c ON c.id = q.category_id
+		GROUP BY 1 ORDER BY 2 DESC, 1`)
 	if err != nil {
 		return nil, err
 	}

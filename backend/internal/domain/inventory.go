@@ -25,6 +25,18 @@ const (
 	PermAssignmentsList   = "assignments.list"
 	PermAssignmentsFind   = "assignments.find"
 	PermAssignmentsUpdate = "assignments.update"
+
+	PermCategoriesCreate = "categories.create"
+	PermCategoriesList   = "categories.list"
+	PermCategoriesFind   = "categories.find"
+	PermCategoriesUpdate = "categories.update"
+	PermCategoriesDelete = "categories.delete"
+
+	PermBrandsCreate = "brands.create"
+	PermBrandsList   = "brands.list"
+	PermBrandsFind   = "brands.find"
+	PermBrandsUpdate = "brands.update"
+	PermBrandsDelete = "brands.delete"
 )
 
 const (
@@ -73,8 +85,10 @@ type Equipment struct {
 	ID           int64
 	Code         string
 	Name         string
-	Category     string
-	Brand        string
+	CategoryID   int64 // 0 = sin categoría
+	CategoryName string
+	BrandID      int64 // 0 = sin marca
+	BrandName    string
 	Model        string
 	Serial       string
 	Status       string
@@ -101,6 +115,15 @@ type Assignment struct {
 	ReturnedAt    *time.Time
 	ReceivedBy    string
 	ReturnNotes   string
+}
+
+// CatalogItem es un valor parametrizable de equipos (categoría o marca).
+type CatalogItem struct {
+	ID             int64
+	Name           string
+	Active         bool
+	EquipmentCount int
+	CreatedAt      time.Time
 }
 
 type EmployeeFilter struct {
